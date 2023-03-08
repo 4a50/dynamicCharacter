@@ -1,4 +1,4 @@
-#Dynamic Character
+# Dynamic Character
 
 Author: [4a50](https://github.com/4a50/)
 
