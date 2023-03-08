@@ -5,7 +5,7 @@ import json
 import os
 rootDir = Path(__file__).resolve().parent.parent.parent
 logFileDirectory = Path(f'{rootDir}/logs')
-logFile = Path(f"{logFileDirectory}/dynamicCharaterLog.json")
+logFile = Path(f"{logFileDirectory}/dynamicCharacterLog.json")
 print(logFileDirectory)
 if(not logFileDirectory.exists()):
     print('Creating logs Directory')    
@@ -15,8 +15,8 @@ if(not logFileDirectory.exists()):
 def printf(cat, txt = '', printOut = True):
     
     obj = {"timestamp": str(datetime.now()), "category": cat, "message": txt} 
-    fileExist =  logFile.is_file()    
     if(printOut): print(f'Log: {obj}')          
+    fileExist =  logFile.is_file()    
     if(fileExist):        
         with open(logFile, 'r') as f:
             fileJson = json.load(f)        
