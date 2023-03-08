@@ -27,11 +27,7 @@ characterParams = {
     "refresh_context": False,
     "file_path": ''
 }
-
 script_path_dir = os.path.dirname(__file__)
-characterParams['select_list'] = [f.name for f in os.scandir(
-    script_path_dir) if f.is_dir() and not f.name.startswith('__')]
-printf('script.py->Main|characterParams[select_list]', characterParams['select_list'])
 
 
 def getCharacterContext(characterInfo):   
@@ -88,8 +84,9 @@ def output_modifier(string):
 
 def _update_custom_context(npList = None):
     printf('_update_custom_context|npList', npList)
+    printf('_update_custom_context->characterParams[file_path]', characterParams['file_path'])
     if(npList or len(npList) > 0):
-        
+        ### ERROR HERE on 93
         with open(characterParams['file_path'], 'r') as f:
             jsonLoad = json.load(f) 
         printf('_updateCustomContext|jsonLoad', jsonLoad)                       
@@ -104,18 +101,20 @@ def _update_custom_context(npList = None):
         printf('custom Context updated', characterParams['current_context'])
 
 def _filter_np_list(npList, currentList):
-    hasItem = False  
+      
     printf(' _filter_np_list|pre-de-dupe npList', npList)
     npList = list(set(npList))
     printf(' _filter_np_list|post-de-dupe npList', npList)    
     print(currentList)  
+    popWordsIdx = []
     for i in range(len(currentList)):
-        print(currentList[i])        
-        if(currentList[i].lower() in [n.lower() for n in npList]):
-            # TODO: Need to make sure when looking in npList we are contained within the list.  Getting a out-of-bounds error
-            printf('_filter_np_list|lenOfCurrentList and i', f'{str(len(npList))} <-> {str(i)}')
-            printf('_filter_np_list|pop', npList[i])            
-            npList.pop(i)        
+        print(currentList[i])  
+        for j in range(len(npList)):
+            if(npList[j].lower() in currentList[i].lower()):
+                printf('_filter_np_list|pop', npList[j])            
+                popWordsIdx.append[j]        
+        if(len(popWordsIdx) > 0):
+            [npList.pop(idx) for idx in popWordsIdx]        
 
 def bot_prefix_modifier(string):
     """
@@ -188,11 +187,16 @@ def custom_generate_chat_prompt(user_input, max_new_tokens, name1, name2, contex
     return newPrompt
 
 def generateInitialCharacterParams():
-    nameList = [f.name for f in os.scandir(
-        script_path_dir) if f.is_dir() and not f.name.startswith('__')]
-    characterParams['select_list'] = nameList
-    # printf('script.py->Main|characterParams[select_list]',
-    #        characterParams['select_list'])    
+    nameList = []
+    for f in os.scandir( script_path_dir):
+        if (f.is_dir() 
+            and not f.name.startswith('__') 
+            and not f.name.startswith('.')
+            and not f.name.startswith('custom')):            
+                nameList.append(f.name)
+        characterParams['select_list'] = nameList
+    print('script.py->generateInitialCharacterParams|characterParams[select_list]',
+           characterParams['select_list'])    
     if (len(characterParams['select_list']) > 0):
         characterParams['selected'] = characterParams['select_list'][0]
 
@@ -201,8 +205,8 @@ def ui():
     generateInitialCharacterParams()
     if (len(characterParams["select_list"]) > 0):
         characterParams['is_select_active'] = True
-    # printf('script.py->ui|params[\'character_select_active\']',
-        #    characterParams['is_select_active'])
+    printf('script.py->ui|params[character_select_active]',
+           characterParams['is_select_active'])
 
     # Gradio elements
     activate = gr.Checkbox(
