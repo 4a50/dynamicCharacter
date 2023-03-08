@@ -1,0 +1,40 @@
+{
+    "context": {
+        "type": "character",
+        "name": "Strider",
+        "properties": {
+            "Species": [
+                "Human"
+            ],
+            "Sex": [
+                "Male"
+            ],
+            "Personality": [
+                "Reserved",
+                "Confident",
+                "Humble",
+                "Strong"
+            ],
+            "Body": [
+                "6'4\" tall",
+                "6 foot 4 inches tall",
+                "Very tall",                
+                "black hair",
+                "blue eyes"
+            ],
+            "Description": [
+                "Strider likes to wander in the forest",
+                "Strider is searching for a lost kingdom"
+            ],
+            "Loves": [
+                "Nature",
+                "Trees",
+                "Isolation"                
+            ]
+        }
+    },
+    "learning_keywords": [
+        "like",
+        "love"        
+    ]
+}
