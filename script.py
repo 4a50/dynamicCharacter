@@ -5,9 +5,9 @@ import json
 from modules.chat import clean_chat_message
 from modules.extensions import apply_extensions
 from modules.text_generation import encode, get_max_prompt_length
-from custom.JPLog import printf
+from extensions.dynamicCharacter.logger import printf
 from pathlib import Path
-from extensions.dynamicCharacterUpdate.nltk_func import getNounPhrase as nltk_txt
+from extensions.dynamicCharacter.nltk_func import getNounPhrase as nltk_txt
 
 import os
 import re
@@ -82,8 +82,7 @@ def output_modifier(string):
     if(re.search(regex, string)):
         printf('Matches Phrase', ':D')
         npList = nltk_txt(string)
-        printf('NP List', npList)
-        # TODO: #1update the character params file and the context.
+        printf('NP List', npList)        
         _update_custom_context(npList)
     return string
 
