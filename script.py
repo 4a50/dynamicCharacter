@@ -61,38 +61,33 @@ def input_modifier(string):
     This function is applied to your text inputs before
     they are fed into the model.
     """
-    printf('extension->input_modifier|parameters', string)
+    # printf('extension->input_modifier|parameters', string)
 
     return string
-
 
 def output_modifier(string):
     # This will analyze for keywords to determine if the character should be updated with likes.
     # TODO: Need to put some limits on the length of the character, it would take up to many tokens, but perhaps able so create
     # character WPP subsets to suit the occasions.  Will help with persisitant memories.
-    printf('extension->output_modifier|KW', characterParams['learning_key_words'])
-    printf('extension->output_modifier|AiOutputString', string)
+    
     learningKW = _concatItems(characterParams['learning_key_words'], '|', False)
     regex = "(?<=I).*?(?=" + learningKW + ")"
-    printf('Learning REGEX', regex)        
-    if(re.search(regex, string)):
-        printf('Matches Phrase', ':D')
-        npList = nltk_txt(string)
-        printf('NP List', npList)        
+    # printf('Learning REGEX', regex)        
+    if(re.search(regex, string)):        
+        npList = nltk_txt(string)             
         _update_custom_context(npList)
     return string
 
-def _update_custom_context(npList = None):
-    printf('_update_custom_context|npList', npList)
-    printf('_update_custom_context->characterParams[file_path]', characterParams['file_path'])
-    if(npList or len(npList) > 0):
-        ### ERROR HERE on 93
+def _update_custom_context(npList = None):    
+    if(npList or len(npList) > 0):        
+        
         with open(characterParams['file_path'], 'r') as f:
             jsonLoad = json.load(f) 
-        printf('_updateCustomContext|jsonLoad', jsonLoad)                       
-        _filter_np_list(npList, jsonLoad["context"]["properties"]["Loves"])
-        printf('_updateCustomContext|filtered', npList)
-        [jsonLoad["context"]["properties"]["Loves"].append(lv) for lv in npList]
+        printf('_updateCustomContext|jsonLoad', jsonLoad)
+
+        _filter_np_and_update_characteristics(npList, jsonLoad["context"]["properties"]["Loves"])
+        printf('_updateCustomContext|filtered', jsonLoad["context"]["properties"]["Loves"])
+        # [jsonLoad["context"]["properties"]["Loves"].append(lv) for lv in npList]
         
         with open(characterParams['file_path'], 'w') as f:
             json.dump(jsonLoad, f)
@@ -100,37 +95,29 @@ def _update_custom_context(npList = None):
         characterParams['current_context'] = getCharacterContext(jsonLoad["context"])
         printf('custom Context updated', characterParams['current_context'])
 
-def _filter_np_list(npList, currentList):
-      
-    printf(' _filter_np_list|pre-de-dupe npList', npList)
+def _filter_np_and_update_characteristics(npList, currentList):
+    
+    printf(f' _filter_np_list|pre-de-dupe npList|len: {len(npList)}', npList)
     npList = list(set(npList))
-    printf(' _filter_np_list|post-de-dupe npList', npList)    
-    print(currentList)  
-    popWordsIdx = []
-    for i in range(len(currentList)):
-        print(currentList[i])  
-        for j in range(len(npList)):
-            if(npList[j].lower() in currentList[i].lower()):
-                printf('_filter_np_list|pop', npList[j])            
-                popWordsIdx.append[j]        
-        if(len(popWordsIdx) > 0):
-            [npList.pop(idx) for idx in popWordsIdx]        
-
+    printf(f' _filter_np_list|post-de-dupe npList|len: {len(npList)}', npList)    
+    currentList = list(set([currentList.append(x)for x in npList]))
+    printf(f' _filter_np_list|post filter and update|len: {len(currentList)}', currentList)    
+            
 def bot_prefix_modifier(string):
     """
     This function is only applied in chat mode. It modifies
     the prefix text for the Bot and can be used to bias its
     behavior.
     """
-    printf('extension->bot_prefix_modifier|parameters', string)
-    printf('extension->bot_prefix_modifier|character_selected',
-           characterParams['selected'])
+    # printf('extension->bot_prefix_modifier|parameters', string)
+    # printf('extension->bot_prefix_modifier|character_selected',
+        # characterParams['selected'])
     if params['activate'] == True:
         return f'{string} {params["bias string"].strip()} '
     else:
         return string
 
-def pass_through_prompt_generation(user_input, max_new_tokens, name1, name2, context, chat_prompt_size, impersonate=False):
+def _pass_through_prompt_generation(user_input, max_new_tokens, name1, name2, context, chat_prompt_size, impersonate=False):
     user_input = clean_chat_message(user_input)
     rows = [f"{context.strip()}\n"]
 
@@ -158,32 +145,28 @@ def pass_through_prompt_generation(user_input, max_new_tokens, name1, name2, con
 
     prompt = ''.join(rows)
     return prompt
+
 def custom_generate_chat_prompt(user_input, max_new_tokens, name1, name2, context, chat_prompt_size, impersonate=False):    
     characterParams['file_path'] = charPath = os.path.join(script_path_dir, characterParams['selected'], 'character.json')    
-    printf('extension->custom_generate_chat_prompt|contextIn', context)
+    # printf('extension->custom_generate_chat_prompt|contextIn', context)
     
     if(characterParams['enable_override'] and os.path.exists(charPath)):
-        printf('extension->custom_generate_chat_prompt|IfStatemetn-charPath', charPath)
+        # printf('extension->custom_generate_chat_prompt|IfStatemetn-charPath', charPath)
         if(characterParams['context_first_load']):
             with open(charPath) as f:
-                charJson = json.load(f)
-            printf('custom_generate_chat_prompt|charJson|learning_keywords', charJson["learning_keywords"])
+                charJson = json.load(f)            
             characterParams['learning_key_words'] = charJson["learning_keywords"]
             characterParams['current_context'] = context = getCharacterContext(charJson["context"])
-            # if (params['context_text_area']): params['context_text_area'].update(context)
+            
             characterParams['context_first_load'] = False            
             shared.settings['context_pygmalion'] = context
             shared.settings['context'] = context
-            printf('extension->custom_generate_chat_prompt|newContext', characterParams['current_context'])
+            
         elif(characterParams['enable_override']):
             context = characterParams['current_context']
-       # TODO: Updated Context not getting set in share.  Need to figure that out.
-    printf('extension->custom_generate_chat_prompt|contextPreFormat', context)
-    printf('extension->custom_generate_chat_prompt|contextOut', context)
-    printf('extension->shared.settings[context]', shared.settings['context'])
-    printf('extension->shared.settings[context_pygmalion]', shared.settings['context_pygmalion'])
-    newPrompt = pass_through_prompt_generation(user_input, max_new_tokens, name1, name2, context, chat_prompt_size, impersonate)
-    printf('extension|newPrompt', newPrompt)
+    
+    newPrompt = _pass_through_prompt_generation(user_input, max_new_tokens, name1, name2, context, chat_prompt_size, impersonate)
+    # printf('extension|newPrompt', newPrompt)
     return newPrompt
 
 def generateInitialCharacterParams():
@@ -205,8 +188,8 @@ def ui():
     generateInitialCharacterParams()
     if (len(characterParams["select_list"]) > 0):
         characterParams['is_select_active'] = True
-    printf('script.py->ui|params[character_select_active]',
-           characterParams['is_select_active'])
+    # printf('script.py->ui|params[character_select_active]',
+        #    characterParams['is_select_active'])
 
     # Gradio elements
     activate = gr.Checkbox(
